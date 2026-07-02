@@ -149,7 +149,7 @@ if (!function_exists('render_uni_card')) {
 
                 <div class="d-flex gap-2 flex-wrap">
                     <span class="chip">
-                        <?= (int)$university['mcnt'] ?> ngÃ nh
+                        <?= (int)$university['mcnt'] ?> ngành
                     </span>
 
                     <span class="chip">
