@@ -1,1 +1,6 @@
 https://github.com/haonv2182-creator/TraCuuDiemChuannew.git
+
+Đăng nhập bằng tài khoản demo:
+
+Username: admin
+Password: admin123
