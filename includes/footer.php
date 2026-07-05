@@ -1,5 +1,3 @@
-<?php // includes/footer.php ?>
-
 <footer class="mt-5 py-4 bg-white border-top">
   <div class="container text-center">
     <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
