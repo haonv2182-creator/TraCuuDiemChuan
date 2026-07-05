@@ -755,7 +755,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('heroUniversityInput');
   const box = document.getElementById('heroUniSuggest');
   const form = document.getElementById('form-uni');
-
+if (input && box) {
+  input.parentElement.style.position = 'relative';
+}
   if (!input || !box) return;
 
   let timer = null;
