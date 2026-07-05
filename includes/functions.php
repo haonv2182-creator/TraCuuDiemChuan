@@ -2,7 +2,6 @@
 require_once __DIR__.'/config.php';
 require_once __DIR__.'/db.php';
 
-// ── Auth & Session (gộp vào đây để tránh lỗi thứ tự load) ──
 function startSession():void {
     if (session_status() === PHP_SESSION_NONE) session_start();
 }
@@ -64,7 +63,6 @@ function getProvinces():array{
             'Bình Dương','Đồng Nai','Khánh Hòa','Thừa Thiên Huế','Nghệ An'];
 }
 
-// ── Phương thức xét tuyển dùng chung ──
 function getAdmissionMethods(): array
 {
     return [
@@ -99,7 +97,6 @@ function methodColor(string $method): string
     return $methods[$method]['color'] ?? 'secondary';
 }
 
-// Home page helpers
 if (!function_exists('uni_code_box')) {
     function uni_code_box($code, $name, $length = 4)
     {
@@ -149,7 +146,7 @@ if (!function_exists('render_uni_card')) {
 
                 <div class="d-flex gap-2 flex-wrap">
                     <span class="chip">
-                        <?= (int)$university['mcnt'] ?> ngÃ nh
+                        <?= (int)$university['mcnt'] ?> ngành
                     </span>
 
                     <span class="chip">
