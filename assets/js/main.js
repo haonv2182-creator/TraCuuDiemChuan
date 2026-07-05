@@ -1,35 +1,16 @@
-// ============================================================
-// assets/js/main.js — DiemChuan.vn
-// ============================================================
-
 document.addEventListener('DOMContentLoaded', () => {
-  // ==========================================================
-  // THÔNG BÁO
-  // ==========================================================
   document.querySelectorAll('.alert[role="alert"]').forEach(alertElement => {
     setTimeout(() => {
-      if (typeof bootstrap === 'undefined') {
-        return;
-      }
-
-      const alertInstance =
-        bootstrap.Alert.getOrCreateInstance(alertElement);
-
-      alertInstance.close();
+      if (typeof bootstrap === 'undefined') return;
+      bootstrap.Alert.getOrCreateInstance(alertElement).close();
     }, 4000);
   });
 
-  // ==========================================================
-  // DARK MODE
-  // ==========================================================
   const darkButton = document.getElementById('darkBtn');
 
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-
-    if (!darkButton) {
-      return;
-    }
+    if (!darkButton) return;
 
     darkButton.innerHTML = theme === 'dark'
       ? '<i class="bi bi-sun-fill"></i>'
@@ -40,26 +21,17 @@ document.addEventListener('DOMContentLoaded', () => {
       : 'Chuyển sang chế độ tối';
   }
 
-  const savedTheme = localStorage.getItem('theme') || 'light';
-
-  applyTheme(savedTheme);
+  applyTheme(localStorage.getItem('theme') || 'light');
 
   if (darkButton) {
     darkButton.addEventListener('click', () => {
-      const currentTheme =
-        document.documentElement.getAttribute('data-theme');
-
-      const nextTheme =
-        currentTheme === 'dark' ? 'light' : 'dark';
-
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
       localStorage.setItem('theme', nextTheme);
       applyTheme(nextTheme);
     });
   }
 
-  // ==========================================================
-  // AUTOCOMPLETE TRÊN NAVBAR
-  // ==========================================================
   const navSearchInput = document.getElementById('navSearch');
   const navSearchDropdown = document.getElementById('navDrop');
 
@@ -67,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiUrl = navSearchInput.dataset.apiurl;
     const universityUrl = navSearchInput.dataset.uniurl;
     const majorUrl = navSearchInput.dataset.majurl;
-
     let searchTimer = null;
     let requestController = null;
 
@@ -78,34 +49,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createDropdownHeader(text) {
       const header = document.createElement('div');
-
       header.className = 'drop-hd';
       header.textContent = text;
-
       return header;
     }
 
-    function createDropdownLink({
-      href,
-      label,
-      description = ''
-    }) {
+    function createDropdownLink({ href, label, description = '' }) {
       const link = document.createElement('a');
-
       link.className = 'drop-item';
       link.href = href;
 
       const labelElement = document.createElement('span');
       labelElement.textContent = label;
-
       link.appendChild(labelElement);
 
       if (description) {
         const descriptionElement = document.createElement('small');
-
         descriptionElement.className = 'text-muted ms-1';
         descriptionElement.textContent = description;
-
         link.appendChild(descriptionElement);
       }
 
@@ -115,57 +76,45 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAutocomplete(data) {
       navSearchDropdown.innerHTML = '';
 
-      const universities =
-        Array.isArray(data.universities)
-          ? data.universities
-          : [];
+      const universities = Array.isArray(data.universities)
+        ? data.universities
+        : [];
 
-      const majors =
-        Array.isArray(data.majors)
-          ? data.majors
-          : [];
+      const majors = Array.isArray(data.majors)
+        ? data.majors
+        : [];
 
-      if (
-        universities.length === 0 &&
-        majors.length === 0
-      ) {
+      if (universities.length === 0 && majors.length === 0) {
         closeNavSearchDropdown();
         return;
       }
 
       if (universities.length > 0) {
-        navSearchDropdown.appendChild(
-          createDropdownHeader('🏛️ Trường đại học')
-        );
+        navSearchDropdown.appendChild(createDropdownHeader('🏛️ Trường đại học'));
 
         universities.forEach(university => {
-          const universityLink = createDropdownLink({
-            href:
-              `${universityUrl}?id=${encodeURIComponent(university.id)}`,
-            label: university.name || '',
-            description: university.province || ''
-          });
-
-          navSearchDropdown.appendChild(universityLink);
+          navSearchDropdown.appendChild(
+            createDropdownLink({
+              href: `${universityUrl}?id=${encodeURIComponent(university.id)}`,
+              label: university.name || '',
+              description: university.province || ''
+            })
+          );
         });
       }
 
       if (majors.length > 0) {
-        const majorHeader =
-          createDropdownHeader('📚 Ngành học');
-
+        const majorHeader = createDropdownHeader('📚 Ngành học');
         majorHeader.classList.add('mt-1');
-
         navSearchDropdown.appendChild(majorHeader);
 
         majors.forEach(major => {
-          const majorLink = createDropdownLink({
-            href:
-              `${majorUrl}?id=${encodeURIComponent(major.id)}`,
-            label: major.name || ''
-          });
-
-          navSearchDropdown.appendChild(majorLink);
+          navSearchDropdown.appendChild(
+            createDropdownLink({
+              href: `${majorUrl}?id=${encodeURIComponent(major.id)}`,
+              label: major.name || ''
+            })
+          );
         });
       }
 
@@ -177,9 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const keyword = navSearchInput.value.trim();
 
-      if (requestController) {
-        requestController.abort();
-      }
+      if (requestController) requestController.abort();
 
       if (keyword.length < 2) {
         closeNavSearchDropdown();
@@ -194,9 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `${apiUrl}?q=${encodeURIComponent(keyword)}`,
             {
               signal: requestController.signal,
-              headers: {
-                Accept: 'application/json'
-              }
+              headers: { Accept: 'application/json' }
             }
           );
 
@@ -204,9 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error('Không thể tải dữ liệu tìm kiếm.');
           }
 
-          const data = await response.json();
-
-          renderAutocomplete(data);
+          renderAutocomplete(await response.json());
         } catch (error) {
           if (error.name !== 'AbortError') {
             closeNavSearchDropdown();
@@ -223,11 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('click', event => {
-      const clickedInsideInput =
-        navSearchInput.contains(event.target);
-
-      const clickedInsideDropdown =
-        navSearchDropdown.contains(event.target);
+      const clickedInsideInput = navSearchInput.contains(event.target);
+      const clickedInsideDropdown = navSearchDropdown.contains(event.target);
 
       if (!clickedInsideInput && !clickedInsideDropdown) {
         closeNavSearchDropdown();
@@ -235,62 +175,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ==========================================================
-  // TRANG CHỦ
-  // ==========================================================
-  const recentSearchKey =
-    'diemchuan_recent_searches';
-
-  const universityForm =
-    document.getElementById('form-uni');
-
-  const majorForm =
-    document.getElementById('form-major');
-
-  const universityInput =
-    document.getElementById('heroUniversityInput');
-
-  const majorSelect =
-    document.getElementById('heroMajorSelect');
-
-  // ----------------------------------------------------------
-  // ĐẾM SỐ LIỆU TĂNG DẦN
-  // ----------------------------------------------------------
-  const counterElements =
-    document.querySelectorAll('[data-counter]');
+  const recentSearchKey = 'diemchuan_recent_searches';
+  const universityForm = document.getElementById('form-uni');
+  const majorForm = document.getElementById('form-major');
+  const universityInput = document.getElementById('heroUniversityInput');
+  const majorSelect = document.getElementById('heroMajorSelect');
+  const counterElements = document.querySelectorAll('[data-counter]');
 
   function animateCounter(element) {
-    if (element.dataset.animated === 'true') {
-      return;
-    }
+    if (element.dataset.animated === 'true') return;
 
     const target = Number(element.dataset.counter || 0);
 
-    if (!Number.isFinite(target) || target < 0) {
-      return;
-    }
+    if (!Number.isFinite(target) || target < 0) return;
 
     element.dataset.animated = 'true';
 
     const duration = 900;
     const startTime = performance.now();
-    const numberFormatter =
-      new Intl.NumberFormat('vi-VN');
+    const numberFormatter = new Intl.NumberFormat('vi-VN');
 
     function updateCounter(currentTime) {
       const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      const currentValue = Math.round(target * easedProgress);
 
-      const progress =
-        Math.min(elapsed / duration, 1);
-
-      const easedProgress =
-        1 - Math.pow(1 - progress, 3);
-
-      const currentValue =
-        Math.round(target * easedProgress);
-
-      element.textContent =
-        numberFormatter.format(currentValue);
+      element.textContent = numberFormatter.format(currentValue);
 
       if (progress < 1) {
         requestAnimationFrame(updateCounter);
@@ -300,26 +211,17 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(updateCounter);
   }
 
-  if (
-    counterElements.length > 0 &&
-    'IntersectionObserver' in window
-  ) {
-    const counterObserver =
-      new IntersectionObserver(
-        (entries, observer) => {
-          entries.forEach(entry => {
-            if (!entry.isIntersecting) {
-              return;
-            }
-
-            animateCounter(entry.target);
-            observer.unobserve(entry.target);
-          });
-        },
-        {
-          threshold: 0.4
-        }
-      );
+  if (counterElements.length > 0 && 'IntersectionObserver' in window) {
+    const counterObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          animateCounter(entry.target);
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.4 }
+    );
 
     counterElements.forEach(element => {
       counterObserver.observe(element);
@@ -328,36 +230,23 @@ document.addEventListener('DOMContentLoaded', () => {
     counterElements.forEach(animateCounter);
   }
 
-  // ----------------------------------------------------------
-  // HIỆU ỨNG XUẤT HIỆN KHI CUỘN
-  // ----------------------------------------------------------
-  const revealElements =
-    document.querySelectorAll('.reveal-up');
+  const revealElements = document.querySelectorAll('.reveal-up');
 
   revealElements.forEach(element => {
     element.classList.add('reveal-pending');
   });
 
-  if (
-    revealElements.length > 0 &&
-    'IntersectionObserver' in window
-  ) {
-    const revealObserver =
-      new IntersectionObserver(
-        (entries, observer) => {
-          entries.forEach(entry => {
-            if (!entry.isIntersecting) {
-              return;
-            }
-
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-          });
-        },
-        {
-          threshold: 0.12
-        }
-      );
+  if (revealElements.length > 0 && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.12 }
+    );
 
     revealElements.forEach(element => {
       revealObserver.observe(element);
@@ -368,20 +257,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ----------------------------------------------------------
-  // TRẠNG THÁI ĐANG TÌM KIẾM
-  // ----------------------------------------------------------
   function showFormLoading(form) {
-    if (!form) {
-      return;
-    }
+    if (!form) return;
 
-    const submitButton =
-      form.querySelector('.js-submit-btn');
+    const submitButton = form.querySelector('.js-submit-btn');
 
-    if (!submitButton) {
-      return;
-    }
+    if (!submitButton) return;
 
     submitButton.disabled = true;
     submitButton.classList.add('is-loading');
@@ -396,37 +277,23 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  document
-    .querySelectorAll('.js-home-search-form')
-    .forEach(form => {
-      form.addEventListener('submit', () => {
-        showFormLoading(form);
-      });
+  document.querySelectorAll('.js-home-search-form').forEach(form => {
+    form.addEventListener('submit', () => {
+      showFormLoading(form);
     });
+  });
 
-  // ----------------------------------------------------------
-  // LỊCH SỬ TÌM KIẾM
-  // ----------------------------------------------------------
   function getRecentSearches() {
     try {
-      const storedData =
-        localStorage.getItem(recentSearchKey);
+      const storedData = localStorage.getItem(recentSearchKey);
 
-      if (!storedData) {
-        return [];
-      }
+      if (!storedData) return [];
 
       const parsedData = JSON.parse(storedData);
 
-      return Array.isArray(parsedData)
-        ? parsedData
-        : [];
+      return Array.isArray(parsedData) ? parsedData : [];
     } catch (error) {
-      console.error(
-        'Không thể đọc lịch sử tìm kiếm:',
-        error
-      );
-
+      console.error('Không thể đọc lịch sử tìm kiếm:', error);
       return [];
     }
   }
@@ -442,47 +309,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const oldItems = getRecentSearches();
+    const filteredItems = oldItems.filter(oldItem => {
+      const sameType = oldItem.type === searchItem.type;
+      const sameValue = String(oldItem.value) === String(searchItem.value);
+      return !(sameType && sameValue);
+    });
 
-    const filteredItems =
-      oldItems.filter(oldItem => {
-        const sameType =
-          oldItem.type === searchItem.type;
+    const newItems = [searchItem, ...filteredItems].slice(0, 6);
 
-        const sameValue =
-          String(oldItem.value) ===
-          String(searchItem.value);
-
-        return !(sameType && sameValue);
-      });
-
-    const newItems = [
-      searchItem,
-      ...filteredItems
-    ].slice(0, 6);
-
-    localStorage.setItem(
-      recentSearchKey,
-      JSON.stringify(newItems)
-    );
-
+    localStorage.setItem(recentSearchKey, JSON.stringify(newItems));
     renderRecentSearches();
   }
 
   function openRecentSearch(searchItem) {
     if (searchItem.type === 'uni') {
-      if (!universityForm || !universityInput) {
-        return;
-      }
+      if (!universityForm || !universityInput) return;
 
       switchTab('uni');
 
-      universityInput.value =
-        searchItem.value;
+      universityInput.value = searchItem.value;
 
-      if (
-        typeof universityForm.requestSubmit ===
-        'function'
-      ) {
+      if (typeof universityForm.requestSubmit === 'function') {
         universityForm.requestSubmit();
       } else {
         universityForm.submit();
@@ -492,30 +339,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (searchItem.type === 'major') {
-      if (!majorForm || !majorSelect) {
-        return;
-      }
+      if (!majorForm || !majorSelect) return;
 
-      const optionExists = Array
-        .from(majorSelect.options)
-        .some(option => {
-          return String(option.value) ===
-            String(searchItem.value);
-        });
+      const optionExists = Array.from(majorSelect.options).some(option => {
+        return String(option.value) === String(searchItem.value);
+      });
 
-      if (!optionExists) {
-        return;
-      }
+      if (!optionExists) return;
 
       switchTab('major');
 
-      majorSelect.value =
-        searchItem.value;
+      majorSelect.value = searchItem.value;
 
-      if (
-        typeof majorForm.requestSubmit ===
-        'function'
-      ) {
+      if (typeof majorForm.requestSubmit === 'function') {
         majorForm.requestSubmit();
       } else {
         majorForm.submit();
@@ -524,22 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderRecentSearches() {
-    const wrapper =
-      document.getElementById(
-        'recentSearchesWrap'
-      );
+    const wrapper = document.getElementById('recentSearchesWrap');
+    const list = document.getElementById('recentSearchList');
 
-    const list =
-      document.getElementById(
-        'recentSearchList'
-      );
+    if (!wrapper || !list) return;
 
-    if (!wrapper || !list) {
-      return;
-    }
-
-    const searchItems =
-      getRecentSearches();
+    const searchItems = getRecentSearches();
 
     list.innerHTML = '';
 
@@ -551,26 +377,18 @@ document.addEventListener('DOMContentLoaded', () => {
     wrapper.classList.remove('d-none');
 
     searchItems.forEach(searchItem => {
-      const button =
-        document.createElement('button');
+      const button = document.createElement('button');
+      const icon = document.createElement('i');
+      const label = document.createElement('span');
 
       button.type = 'button';
-      button.className =
-        'recent-search-chip';
+      button.className = 'recent-search-chip';
 
-      const icon =
-        document.createElement('i');
+      icon.className = searchItem.type === 'major'
+        ? 'bi bi-book'
+        : 'bi bi-building';
 
-      icon.className =
-        searchItem.type === 'major'
-          ? 'bi bi-book'
-          : 'bi bi-building';
-
-      const label =
-        document.createElement('span');
-
-      label.textContent =
-        searchItem.label;
+      label.textContent = searchItem.label;
 
       button.appendChild(icon);
       button.appendChild(label);
@@ -583,15 +401,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Lưu từ khóa tìm trường
   if (universityForm && universityInput) {
     universityForm.addEventListener('submit', () => {
-      const keyword =
-        universityInput.value.trim();
+      const keyword = universityInput.value.trim();
 
-      if (!keyword) {
-        return;
-      }
+      if (!keyword) return;
 
       saveRecentSearch({
         type: 'uni',
@@ -601,13 +415,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Lưu ngành được chọn
   if (majorForm && majorSelect) {
     majorForm.addEventListener('submit', () => {
-      const selectedOption =
-        majorSelect.options[
-          majorSelect.selectedIndex
-        ];
+      const selectedOption = majorSelect.options[majorSelect.selectedIndex];
 
       if (
         !selectedOption ||
@@ -625,10 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     majorSelect.addEventListener('change', () => {
-      const selectedOption =
-        majorSelect.options[
-          majorSelect.selectedIndex
-        ];
+      const selectedOption = majorSelect.options[majorSelect.selectedIndex];
 
       if (
         !selectedOption ||
@@ -646,94 +453,54 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Tìm nhanh bằng nút ngành phổ biến
-  document
-    .querySelectorAll('[data-major-id]')
-    .forEach(button => {
-      button.addEventListener('click', () => {
-        if (!majorSelect || !majorForm) {
-          return;
-        }
+  document.querySelectorAll('[data-major-id]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (!majorSelect || !majorForm) return;
 
-        const majorId =
-          button.dataset.majorId;
-
-        const optionExists = Array
-          .from(majorSelect.options)
-          .some(option => {
-            return String(option.value) ===
-              String(majorId);
-          });
-
-        if (!optionExists) {
-          return;
-        }
-
-        switchTab('major');
-
-        majorSelect.value = majorId;
-
-        const selectedOption =
-          majorSelect.options[
-            majorSelect.selectedIndex
-          ];
-
-        saveRecentSearch({
-          type: 'major',
-          value: majorId,
-          label:
-            selectedOption?.text.trim() ||
-            button.textContent.trim()
-        });
-
-        if (
-          typeof majorForm.requestSubmit ===
-          'function'
-        ) {
-          majorForm.requestSubmit();
-        } else {
-          majorForm.submit();
-        }
+      const majorId = button.dataset.majorId;
+      const optionExists = Array.from(majorSelect.options).some(option => {
+        return String(option.value) === String(majorId);
       });
-    });
 
-  // Xóa lịch sử tìm kiếm
-  const clearRecentButton =
-    document.getElementById(
-      'clearRecentSearches'
-    );
+      if (!optionExists) return;
+
+      switchTab('major');
+
+      majorSelect.value = majorId;
+
+      const selectedOption = majorSelect.options[majorSelect.selectedIndex];
+
+      saveRecentSearch({
+        type: 'major',
+        value: majorId,
+        label: selectedOption?.text.trim() || button.textContent.trim()
+      });
+
+      if (typeof majorForm.requestSubmit === 'function') {
+        majorForm.requestSubmit();
+      } else {
+        majorForm.submit();
+      }
+    });
+  });
+
+  const clearRecentButton = document.getElementById('clearRecentSearches');
 
   if (clearRecentButton) {
-    clearRecentButton.addEventListener(
-      'click',
-      () => {
-        localStorage.removeItem(
-          recentSearchKey
-        );
-
-        renderRecentSearches();
-      }
-    );
+    clearRecentButton.addEventListener('click', () => {
+      localStorage.removeItem(recentSearchKey);
+      renderRecentSearches();
+    });
   }
 
   renderRecentSearches();
 });
 
-// ============================================================
-// CHUYỂN TAB TÌM KIẾM TRANG CHỦ
-// ============================================================
 function switchTab(tab) {
-  const universityForm =
-    document.getElementById('form-uni');
-
-  const majorForm =
-    document.getElementById('form-major');
-
-  const universityTab =
-    document.getElementById('tab-uni');
-
-  const majorTab =
-    document.getElementById('tab-major');
+  const universityForm = document.getElementById('form-uni');
+  const majorForm = document.getElementById('form-major');
+  const universityTab = document.getElementById('tab-uni');
+  const majorTab = document.getElementById('tab-major');
 
   if (
     !universityForm ||
@@ -744,80 +511,31 @@ function switchTab(tab) {
     return;
   }
 
-  const isUniversityTab =
-    tab === 'uni';
+  const isUniversityTab = tab === 'uni';
 
-  universityForm.classList.toggle(
-    'd-none',
-    !isUniversityTab
-  );
+  universityForm.classList.toggle('d-none', !isUniversityTab);
+  majorForm.classList.toggle('d-none', isUniversityTab);
+  universityTab.classList.toggle('btn-light', isUniversityTab);
+  universityTab.classList.toggle('btn-outline-light', !isUniversityTab);
+  majorTab.classList.toggle('btn-light', !isUniversityTab);
+  majorTab.classList.toggle('btn-outline-light', isUniversityTab);
 
-  majorForm.classList.toggle(
-    'd-none',
-    isUniversityTab
-  );
-
-  universityTab.classList.toggle(
-    'btn-light',
-    isUniversityTab
-  );
-
-  universityTab.classList.toggle(
-    'btn-outline-light',
-    !isUniversityTab
-  );
-
-  majorTab.classList.toggle(
-    'btn-light',
-    !isUniversityTab
-  );
-
-  majorTab.classList.toggle(
-    'btn-outline-light',
-    isUniversityTab
-  );
-
-  universityTab.setAttribute(
-    'aria-pressed',
-    String(isUniversityTab)
-  );
-
-  majorTab.setAttribute(
-    'aria-pressed',
-    String(!isUniversityTab)
-  );
+  universityTab.setAttribute('aria-pressed', String(isUniversityTab));
+  majorTab.setAttribute('aria-pressed', String(!isUniversityTab));
 
   if (isUniversityTab) {
-    const universityInput =
-      document.getElementById(
-        'heroUniversityInput'
-      );
-
-    universityInput?.focus();
+    document.getElementById('heroUniversityInput')?.focus();
   } else {
-    const majorSelect =
-      document.getElementById(
-        'heroMajorSelect'
-      );
-
-    majorSelect?.focus();
+    document.getElementById('heroMajorSelect')?.focus();
   }
 }
 
-// Để onclick trong HTML có thể gọi được
 window.switchTab = switchTab;
 window.switchHomeTab = switchTab;
 
-// ============================================================
-// XÁC NHẬN XÓA
-// ============================================================
 function confirmDelete(url, name) {
-  const itemName =
-    name || 'mục này';
-
-  const accepted = window.confirm(
-    `Xóa "${itemName}"?\nKhông thể hoàn tác!`
-  );
+  const itemName = name || 'mục này';
+  const accepted = window.confirm(`Xóa "${itemName}"?\nKhông thể hoàn tác!`);
 
   if (accepted) {
     window.location.href = url;
@@ -826,32 +544,17 @@ function confirmDelete(url, name) {
 
 window.confirmDelete = confirmDelete;
 
-// ============================================================
-// XEM TRƯỚC LOGO
-// ============================================================
 function previewLogo(input, imageId) {
-  if (
-    !input ||
-    !input.files ||
-    !input.files[0]
-  ) {
-    return;
-  }
+  if (!input || !input.files || !input.files[0]) return;
 
-  const image =
-    document.getElementById(imageId);
+  const image = document.getElementById(imageId);
 
-  if (!image) {
-    return;
-  }
+  if (!image) return;
 
   const file = input.files[0];
 
   if (!file.type.startsWith('image/')) {
-    window.alert(
-      'Vui lòng chọn đúng file hình ảnh.'
-    );
-
+    window.alert('Vui lòng chọn đúng file hình ảnh.');
     input.value = '';
     return;
   }
@@ -868,71 +571,47 @@ function previewLogo(input, imageId) {
 
 window.previewLogo = previewLogo;
 
-// ============================================================
-// BIỂU ĐỒ ĐƯỜNG
-// ============================================================
-function chartLine(
-  elementId,
-  labels,
-  datasets
-) {
-  const canvas =
-    document.getElementById(elementId);
+function chartLine(elementId, labels, datasets) {
+  const canvas = document.getElementById(elementId);
 
-  if (
-    !canvas ||
-    typeof Chart === 'undefined'
-  ) {
-    return null;
-  }
+  if (!canvas || typeof Chart === 'undefined') return null;
 
   return new Chart(canvas, {
     type: 'line',
-
     data: {
       labels,
       datasets
     },
-
     options: {
       responsive: true,
       maintainAspectRatio: true,
-
       interaction: {
         mode: 'index',
         intersect: false
       },
-
       plugins: {
         legend: {
           position: 'bottom',
-
           labels: {
             boxWidth: 12,
-
             font: {
               size: 11
             }
           }
         },
-
         tooltip: {
           callbacks: {
             label(context) {
-              const value =
-                context.parsed.y;
-
+              const value = context.parsed.y;
               return `${context.dataset.label}: ${value ?? 'Không có dữ liệu'}`;
             }
           }
         }
       },
-
       scales: {
         y: {
           suggestedMin: 15,
           suggestedMax: 30,
-
           title: {
             display: true,
             text: 'Điểm chuẩn'
@@ -945,52 +624,32 @@ function chartLine(
 
 window.chartLine = chartLine;
 
-// ============================================================
-// BIỂU ĐỒ CỘT
-// ============================================================
-function chartBar(
-  elementId,
-  labels,
-  data,
-  label = 'Điểm'
-) {
-  const canvas =
-    document.getElementById(elementId);
+function chartBar(elementId, labels, data, label = 'Điểm') {
+  const canvas = document.getElementById(elementId);
 
-  if (
-    !canvas ||
-    typeof Chart === 'undefined'
-  ) {
-    return null;
-  }
+  if (!canvas || typeof Chart === 'undefined') return null;
 
   return new Chart(canvas, {
     type: 'bar',
-
     data: {
       labels,
-
       datasets: [
         {
           label,
           data,
-          backgroundColor:
-            'rgba(26, 86, 219, .82)',
+          backgroundColor: 'rgba(26, 86, 219, .82)',
           borderRadius: 6
         }
       ]
     },
-
     options: {
       responsive: true,
       maintainAspectRatio: true,
-
       plugins: {
         legend: {
           display: false
         }
       },
-
       scales: {
         y: {
           beginAtZero: false,
@@ -1003,34 +662,18 @@ function chartBar(
 
 window.chartBar = chartBar;
 
-// ============================================================
-// BIỂU ĐỒ TRÒN
-// ============================================================
-function chartDoughnut(
-  elementId,
-  labels,
-  data
-) {
-  const canvas =
-    document.getElementById(elementId);
+function chartDoughnut(elementId, labels, data) {
+  const canvas = document.getElementById(elementId);
 
-  if (
-    !canvas ||
-    typeof Chart === 'undefined'
-  ) {
-    return null;
-  }
+  if (!canvas || typeof Chart === 'undefined') return null;
 
   return new Chart(canvas, {
     type: 'doughnut',
-
     data: {
       labels,
-
       datasets: [
         {
           data,
-
           backgroundColor: [
             '#1a56db',
             '#10b981',
@@ -1039,23 +682,18 @@ function chartDoughnut(
             '#ef4444',
             '#64748b'
           ],
-
           borderWidth: 0
         }
       ]
     },
-
     options: {
       responsive: true,
       maintainAspectRatio: true,
-
       plugins: {
         legend: {
           position: 'bottom',
-
           labels: {
             boxWidth: 12,
-
             font: {
               size: 11
             }
@@ -1068,60 +706,39 @@ function chartDoughnut(
 
 window.chartDoughnut = chartDoughnut;
 
-// ============================================================
-// BIỂU ĐỒ CỘT NHÓM
-// ============================================================
-function chartBar2(
-  elementId,
-  labels,
-  datasets
-) {
-  const canvas =
-    document.getElementById(elementId);
+function chartBar2(elementId, labels, datasets) {
+  const canvas = document.getElementById(elementId);
 
-  if (
-    !canvas ||
-    typeof Chart === 'undefined'
-  ) {
-    return null;
-  }
+  if (!canvas || typeof Chart === 'undefined') return null;
 
   return new Chart(canvas, {
     type: 'bar',
-
     data: {
       labels,
       datasets
     },
-
     options: {
       responsive: true,
       maintainAspectRatio: true,
-
       interaction: {
         mode: 'index',
         intersect: false
       },
-
       plugins: {
         legend: {
           position: 'bottom',
-
           labels: {
             boxWidth: 12,
-
             font: {
               size: 11
             }
           }
         }
       },
-
       scales: {
         y: {
           suggestedMin: 15,
           suggestedMax: 30,
-
           title: {
             display: true,
             text: 'Điểm chuẩn'
@@ -1133,9 +750,7 @@ function chartBar2(
 }
 
 window.chartBar2 = chartBar2;
-// ============================================================
-// GỢI Ý TRƯỜNG Ở HERO + TỰ CUỘN SAU KHI TÌM
-// ============================================================
+
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('heroUniversityInput');
   const box = document.getElementById('heroUniSuggest');
@@ -1147,6 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   input.addEventListener('input', () => {
     clearTimeout(timer);
+
     const q = input.value.trim();
 
     if (q.length < 2) {
@@ -1209,9 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 300);
   }
 });
-// ============================================================
-// GỢI Ý TRƯỜNG Ở TRANG TRA CỨU NÂNG CAO
-// ============================================================
+
 document.addEventListener('DOMContentLoaded', () => {
   const advancedInput = document.querySelector('form input[name="q"]');
 
@@ -1239,7 +853,6 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const res = await fetch(`api/search.php?q=${encodeURIComponent(q)}`);
         const data = await res.json();
-
         const universities = data.universities || [];
 
         if (universities.length === 0) {
