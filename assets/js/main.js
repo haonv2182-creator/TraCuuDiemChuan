@@ -515,11 +515,18 @@ function switchTab(tab) {
 
   universityForm.classList.toggle('d-none', !isUniversityTab);
   majorForm.classList.toggle('d-none', isUniversityTab);
+
+  universityTab.classList.toggle('is-active', isUniversityTab);
+  majorTab.classList.toggle('is-active', !isUniversityTab);
+
+  // Giữ lại class cũ để không làm vỡ style desktop nếu CSS cũ còn dùng
   universityTab.classList.toggle('btn-light', isUniversityTab);
   universityTab.classList.toggle('btn-outline-light', !isUniversityTab);
   majorTab.classList.toggle('btn-light', !isUniversityTab);
   majorTab.classList.toggle('btn-outline-light', isUniversityTab);
 
+  universityTab.setAttribute('aria-selected', String(isUniversityTab));
+  majorTab.setAttribute('aria-selected', String(!isUniversityTab));
   universityTab.setAttribute('aria-pressed', String(isUniversityTab));
   majorTab.setAttribute('aria-pressed', String(!isUniversityTab));
 

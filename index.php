@@ -6,7 +6,7 @@ $db      = getDB();
 $q       = trim($_GET['q'] ?? '');
 $mid     = (int)($_GET['major'] ?? 0);
 $method  = trim($_GET['method'] ?? '');
-$year = (int)($_GET['year'] ?? 0);
+$year    = (int)($_GET['year'] ?? 0);
 $tab     = isset($_GET['major']) ? 'major' : 'uni';
 $showAll = ($_GET['show_all'] ?? '') === '1';
 $isHome  = $q === '' && $mid === 0;
@@ -108,12 +108,14 @@ if ($mid > 0) {
         $stmt->execute($yearParams);
         $latestYear = (int)$stmt->fetchColumn();
     }
+
     if ($latestYear > 0) {
         $majorWhere = "
             s.major_id = :mid
             AND s.year = :year
             AND s.method IN ($validMethodSql)
         ";
+
         $majorParams = [
             ':mid'  => $mid,
             ':year' => $latestYear
@@ -152,31 +154,30 @@ $featuredMajors = [];
 
 if ($isHome) {
     $featuredFilter = $showAll ? '' : 'WHERE u.is_featured = 1';
+    $featuredLimit  = $showAll ? '' : 'LIMIT 8';
 
-$featuredLimit = $showAll ? '' : 'LIMIT 8';
-
-        $featuredUnis = $db->query("
-            SELECT
-                u.university_id,
-                u.university_name,
-                u.university_code,
-                u.province,
-                u.school_type,
-                COUNT(DISTINCT s.major_id) AS mcnt
-            FROM universities u
-            LEFT JOIN admission_scores s
-                ON u.university_id = s.university_id
-               AND s.method IN ($validMethodSql)
-            $featuredFilter
-            GROUP BY
-                u.university_id,
-                u.university_name,
-                u.university_code,
-                u.province,
-                u.school_type
-            ORDER BY u.university_name ASC
-            $featuredLimit
-        ")->fetchAll();
+    $featuredUnis = $db->query("
+        SELECT
+            u.university_id,
+            u.university_name,
+            u.university_code,
+            u.province,
+            u.school_type,
+            COUNT(DISTINCT s.major_id) AS mcnt
+        FROM universities u
+        LEFT JOIN admission_scores s
+            ON u.university_id = s.university_id
+           AND s.method IN ($validMethodSql)
+        $featuredFilter
+        GROUP BY
+            u.university_id,
+            u.university_name,
+            u.university_code,
+            u.province,
+            u.school_type
+        ORDER BY u.university_name ASC
+        $featuredLimit
+    ")->fetchAll();
 
     $featuredMajors = $db->query("
         SELECT
@@ -244,7 +245,6 @@ $actionItems = [
         'link_text'   => 'Nhận gợi ý'
     ]
 ];
-
 ?>
 
 <section class="hero home-hero">
@@ -267,133 +267,136 @@ $actionItems = [
                 Tìm trường, ngành học và phương thức xét tuyển phù hợp với bạn
             </p>
 
-            <div class="d-flex justify-content-center gap-2 mb-3">
-                <button
-                    type="button"
-                    onclick="switchHomeTab('uni')"
-                    id="tab-uni"
-                    class="btn fw-semibold px-4 <?= $tab === 'uni' ? 'btn-light' : 'btn-outline-light' ?>"
-                    style="border-radius:30px"
-                >
-                    <i class="bi bi-building me-1"></i>
-                    Tìm theo trường
-                </button>
+            <div class="home-search-card mx-auto">
+                <div class="home-tab-switch" role="tablist" aria-label="Chọn kiểu tra cứu">
+                    <button
+                        type="button"
+                        onclick="switchHomeTab('uni')"
+                        id="tab-uni"
+                        role="tab"
+                        aria-selected="<?= $tab === 'uni' ? 'true' : 'false' ?>"
+                        aria-pressed="<?= $tab === 'uni' ? 'true' : 'false' ?>"
+                        class="btn fw-semibold px-4 home-tab-btn <?= $tab === 'uni' ? 'btn-light is-active' : 'btn-outline-light' ?>"
+                    >
+                        <i class="bi bi-building me-1"></i>
+                        Tìm theo trường
+                    </button>
 
-                <button
-                    type="button"
-                    onclick="switchHomeTab('major')"
-                    id="tab-major"
-                    class="btn fw-semibold px-4 <?= $tab === 'major' ? 'btn-light' : 'btn-outline-light' ?>"
-                    style="border-radius:30px"
+                    <button
+                        type="button"
+                        onclick="switchHomeTab('major')"
+                        id="tab-major"
+                        role="tab"
+                        aria-selected="<?= $tab === 'major' ? 'true' : 'false' ?>"
+                        aria-pressed="<?= $tab === 'major' ? 'true' : 'false' ?>"
+                        class="btn fw-semibold px-4 home-tab-btn <?= $tab === 'major' ? 'btn-light is-active' : 'btn-outline-light' ?>"
+                    >
+                        <i class="bi bi-book me-1"></i>
+                        Tìm theo ngành
+                    </button>
+                </div>
+
+                <form
+                    action="<?= url('index.php') ?>"
+                    method="GET"
+                    id="form-uni"
+                    class="js-home-search-form <?= $tab === 'major' ? 'd-none' : '' ?>"
                 >
-                    <i class="bi bi-book me-1"></i>
-                    Tìm theo ngành
-                </button>
+                    <div class="search-hero home-search-box mx-auto">
+                        <i class="bi bi-building"></i>
+
+                        <input
+                            type="text"
+                            name="q"
+                            id="heroUniversityInput"
+                            value="<?= e($q) ?>"
+                            autocomplete="off"
+                            placeholder="Nhập tên trường đại học..."
+                        >
+
+                        <div id="heroUniSuggest" class="hero-suggest-box"></div>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary fw-semibold js-submit-btn"
+                        >
+                            <i class="bi bi-search me-1"></i>
+                            Tìm kiếm
+                        </button>
+                    </div>
+                </form>
+
+                <form
+                    action="<?= url('index.php') ?>"
+                    method="GET"
+                    id="form-major"
+                    class="js-home-search-form <?= $tab === 'uni' ? 'd-none' : '' ?>"
+                >
+                    <div class="search-hero home-search-box mx-auto">
+                        <i class="bi bi-book"></i>
+
+                        <select
+                            name="major"
+                            id="heroMajorSelect"
+                            class="form-select"
+                            onchange="this.form.submit()"
+                        >
+                            <option value="0">-- Chọn ngành học --</option>
+
+                            <?php foreach ($allMajors as $major): ?>
+                                <option
+                                    value="<?= (int)$major['major_id'] ?>"
+                                    <?= $mid === (int)$major['major_id'] ? 'selected' : '' ?>
+                                >
+                                    <?= e($major['major_name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <select
+                            name="method"
+                            class="form-select"
+                            onchange="this.form.submit()"
+                        >
+                            <option value="">Tất cả phương thức</option>
+
+                            <?php foreach ($methods as $value => $item): ?>
+                                <option
+                                    value="<?= e($value) ?>"
+                                    <?= $method === $value ? 'selected' : '' ?>
+                                >
+                                    <?= e($item['label']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <select
+                            name="year"
+                            class="form-select"
+                            onchange="this.form.submit()"
+                        >
+                            <option value="0">Năm mới nhất</option>
+
+                            <?php foreach ($years as $y): ?>
+                                <option
+                                    value="<?= e($y) ?>"
+                                    <?= $year === (int)$y ? 'selected' : '' ?>
+                                >
+                                    <?= e($y) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary fw-semibold js-submit-btn"
+                        >
+                            <i class="bi bi-search me-1"></i>
+                            Xem điểm
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <form
-                action="<?= url('index.php') ?>"
-                method="GET"
-                id="form-uni"
-                class="js-home-search-form <?= $tab === 'major' ? 'd-none' : '' ?>"
-            >
-                <div class="search-hero mx-auto" style="max-width:650px">
-                    <i class="bi bi-building"></i>
-
-                <input
-                    type="text"
-                    name="q"
-                    id="heroUniversityInput"
-                    value="<?= e($q) ?>"
-                    autocomplete="off"
-                    placeholder="Nhập tên trường đại học..."
-                >
-
-                <div id="heroUniSuggest" class="hero-suggest-box"></div>
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary px-4 fw-semibold js-submit-btn"
-                    >
-                        <i class="bi bi-search me-1"></i>
-                        Tìm kiếm
-                    </button>
-                </div>
-            </form>
-
-            <form
-                action="<?= url('index.php') ?>"
-                method="GET"
-                id="form-major"
-                class="js-home-search-form <?= $tab === 'uni' ? 'd-none' : '' ?>"
-            >
-                <div class="search-hero mx-auto" style="max-width:850px">
-                    <i class="bi bi-book"></i>
-
-                    <select
-                        name="major"
-                        id="heroMajorSelect"
-                        class="form-select border-0 bg-transparent"
-                        style="flex:1;outline:none;font-size:14px;font-family:inherit"
-                        onchange="this.form.submit()"
-                    >
-                        <option value="0">-- Chọn ngành học --</option>
-
-                        <?php foreach ($allMajors as $major): ?>
-                            <option
-                                value="<?= (int)$major['major_id'] ?>"
-                                <?= $mid === (int)$major['major_id'] ? 'selected' : '' ?>
-                            >
-                                <?= e($major['major_name']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-
-                    <select
-                        name="method"
-                        class="form-select border-0 bg-transparent"
-                        style="max-width:200px;outline:none;font-size:14px;font-family:inherit;border-left:1px solid var(--gray-200)!important"
-                        onchange="this.form.submit()"
-                    >
-                        <option value="">Tất cả phương thức</option>
-
-                        <?php foreach ($methods as $value => $item): ?>
-                            <option
-                                value="<?= e($value) ?>"
-                                <?= $method === $value ? 'selected' : '' ?>
-                            >
-                                <?= e($item['label']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-
-                    <select
-                        name="year"
-                        class="form-select border-0 bg-transparent"
-                        style="max-width:150px;outline:none;font-size:14px;font-family:inherit;border-left:1px solid var(--gray-200)!important"
-                        onchange="this.form.submit()"
-                    >
-                        <option value="0">Năm mới nhất</option>
-
-                        <?php foreach ($years as $y): ?>
-                            <option
-                                value="<?= e($y) ?>"
-                                <?= $year === (int)$y ? 'selected' : '' ?>
-                            >
-                                <?= e($y) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary px-4 fw-semibold js-submit-btn"
-                    >
-                        <i class="bi bi-search me-1"></i>
-                        Xem điểm
-                    </button>
-                </div>
-            </form>
 
             <?php if (!empty($popularMajors)): ?>
                 <div class="popular-searches">
@@ -412,12 +415,12 @@ $actionItems = [
             <?php endif; ?>
 
             <div class="hero-stats d-flex flex-wrap gap-3 mt-4 justify-content-center">
-            <?php foreach ($statItems as $item): ?>
-                <div class="hero-stat-card">
-                <strong><?= number_format($item['value']) ?>+</strong>
-                <span><?= e($item['label']) ?></span>
-                </div>
-            <?php endforeach; ?>
+                <?php foreach ($statItems as $item): ?>
+                    <div class="hero-stat-card">
+                        <strong><?= number_format($item['value']) ?>+</strong>
+                        <span><?= e($item['label']) ?></span>
+                    </div>
+                <?php endforeach; ?>
             </div>
 
         </div>
@@ -477,7 +480,7 @@ $actionItems = [
 
         <?php else: ?>
 
-            <div class="card">
+            <div class="card major-result-card">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0 align-middle">
                         <thead>
@@ -785,6 +788,5 @@ $actionItems = [
     <?php endif; ?>
 
 </div>
-
 
 <?php require_once 'includes/footer.php'; ?>
